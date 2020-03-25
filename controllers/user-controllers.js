@@ -10,7 +10,7 @@ const signup = async (req, res, next) => {
 		gradYear,
 		intendedMajor,
 		extraAct,
-		achivement,
+		achievement,
 		currentHighSchool
 	} = req.body
 
@@ -49,7 +49,7 @@ const signup = async (req, res, next) => {
 		gradYear,
 		intendedMajor,
 		extraAct,
-		achivement,
+		achievement,
 		currentHighSchool,
 		posts: [],
 		replies: []
@@ -58,6 +58,7 @@ const signup = async (req, res, next) => {
 	try {
 		await createdUser.save()
 	} catch (err) {
+		console.log(err)
 		return next(
 			new HttpError("Signing up failed, please try again later", 500)
 		)
