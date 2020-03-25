@@ -1,5 +1,6 @@
 const HttpError = require("../errors/http-error")
 const User = require("../models/user.model")
+const bcrypt = require("bcrypt")
 
 const signup = async (req, res, next) => {
 	const {
@@ -32,10 +33,19 @@ const signup = async (req, res, next) => {
 		)
 	}
 
+	let hashedPass
+	try {
+		hashedPass = await bcrypt.hash(password, 10)
+	} catch (err) {
+		return next(
+			new HttpError("Could not create user, please try again", 500)
+		)
+	}
+
 	const createdUser = new User({
 		name,
 		email,
-		password,
+		password: hashedPass,
 		gradYear,
 		intendedMajor,
 		extraAct,
@@ -58,7 +68,47 @@ const signup = async (req, res, next) => {
 	})
 }
 
-const signin = (req, res, next) => {}
+const signin = async (req, res, next) => {
+	const { email, password } = req.body
+
+	let existingUser
+	try {
+		existingUser = await User.findOne({ email: email })
+	} catch (err) {
+		return next(
+			new HttpError("Sign in failed, please try again later", 500)
+		)
+	}
+
+	if (!existingUser) {
+		return next(
+			new HttpError("Sign in failed, please try again later", 500)
+		)
+	}
+
+	let isValidPass = false
+	try {
+		isValidPass = await bcrypt.compare(password, existingUser.password)
+	} catch (err) {
+		return next(
+			new HttpError(
+				"Could not sign in, please check your email/password",
+				401
+			)
+		)
+	}
+
+	if (!isValidPass) {
+		return next(
+			new HttpError(
+				"Could not sign in, please check your email/password",
+				401
+			)
+		)
+	}
+
+	res.json("Signed in")
+}
 
 exports.signup = signup
 exports.signin = signin
