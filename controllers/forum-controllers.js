@@ -96,7 +96,39 @@ const newPost = async (req, res, next) => {
 	res.status(201).json({ post: createdPost })
 }
 
-const votePost = (req, res, next) => {}
+const votePost = async (req, res, next) => {
+	const { direction } = req.body
+	const postId = req.params.pid
+
+	//check if post exist
+	let post
+	try {
+		post = await Post.findById(postId)
+	} catch (err) {
+		return next(
+			new HttpError(
+				"Something went wrong, please try again later",
+				500
+			)
+		)
+	}
+
+	//vote or upvotes
+	direction === 1 ? (post.votes.upvotes += 1) : (post.votes.downvotes += 1)
+
+	try {
+		await post.save()
+	} catch (err) {
+		return next(
+			new HttpError(
+				"Something went wrong, please try again later",
+				500
+			)
+		)
+	}
+
+	res.status(200).json({ post: post.toObject({ getters: true }) })
+}
 
 exports.getPostById = getPostById
 exports.getRepliesByPostId = getRepliesByPostId

@@ -11,6 +11,6 @@ router.get("/:pid/replies", forumControllers.getRepliesByPostId)
 router.post("/", forumControllers.newPost)
 
 //vote a particular post
-router.post("/:pid/votes", forumControllers.votePost)
+router.patch("/:pid/votes", forumControllers.votePost)
 
 module.exports = router
