@@ -1,23 +1,36 @@
 const HttpError = require("../errors/http-error")
 const User = require("../models/user.model")
-const bcrypt = require("bcrypt")
+const jwt = require("jsonwebtoken")
 
-const signup = async (req, res, next) => {
+const onboard = async (req, res, next) => {
+	//get the token from the headers
+	const authHeader = req.headers["authorization"]
+	const token = authHeader && authHeader.split(" ")[1]
+
+	if (!token)
+		return res.status(401).json({ msg: "No token, authorizaton denied" })
+
+	const auth_id = jwt.decode(token).sub
+
+	//get data from the body
+	const { is_onboarded, onboardingInfo } = req.body
+
 	const {
 		name,
-		email,
-		password,
-		gradYear,
+		mentorMentee,
+		fieldStudy,
 		intendedMajor,
-		extraAct,
-		achievement,
-		currentHighSchool
-	} = req.body
+		gradYear,
+		race,
+		gender,
+		finAid,
+		schoolTypes
+	} = onboardingInfo
 
 	//check if user already exist
 	let existingUser
 	try {
-		existingUser = await User.findOne({ email: email })
+		existingUser = await User.findOne({ auth_id: auth_id })
 	} catch (err) {
 		return next(
 			new HttpError("Signing up failed, please try again later", 500)
@@ -33,24 +46,20 @@ const signup = async (req, res, next) => {
 		)
 	}
 
-	let hashedPass
-	try {
-		hashedPass = await bcrypt.hash(password, 10)
-	} catch (err) {
-		return next(
-			new HttpError("Could not create user, please try again", 500)
-		)
-	}
-
 	const createdUser = new User({
-		name,
-		email,
-		password: hashedPass,
-		gradYear,
-		intendedMajor,
-		extraAct,
-		achievement,
-		currentHighSchool,
+		auth_id,
+		is_onboarded,
+		onboardingInfo: {
+			name,
+			mentorMentee,
+			fieldStudy,
+			intendedMajor,
+			gradYear,
+			race,
+			gender,
+			finAid,
+			schoolTypes
+		},
 		posts: [],
 		replies: []
 	})
@@ -69,47 +78,4 @@ const signup = async (req, res, next) => {
 	})
 }
 
-const signin = async (req, res, next) => {
-	const { email, password } = req.body
-
-	let existingUser
-	try {
-		existingUser = await User.findOne({ email: email })
-	} catch (err) {
-		return next(
-			new HttpError("Sign in failed, please try again later", 500)
-		)
-	}
-
-	if (!existingUser) {
-		return next(
-			new HttpError("Sign in failed, please try again later", 500)
-		)
-	}
-
-	let isValidPass = false
-	try {
-		isValidPass = await bcrypt.compare(password, existingUser.password)
-	} catch (err) {
-		return next(
-			new HttpError(
-				"Could not sign in, please check your email/password",
-				401
-			)
-		)
-	}
-
-	if (!isValidPass) {
-		return next(
-			new HttpError(
-				"Could not sign in, please check your email/password",
-				401
-			)
-		)
-	}
-
-	res.json("Signed in")
-}
-
-exports.signup = signup
-exports.signin = signin
+exports.onboard = onboard

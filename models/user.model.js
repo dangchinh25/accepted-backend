@@ -2,15 +2,24 @@ const mongoose = require("mongoose")
 const Schema = mongoose.Schema
 
 const userSchema = new Schema({
-	name: { type: String, required: true },
-	email: { type: String, required: true, unique: true },
-	password: { type: String, required: true, minlength: 6 },
-	gradYear: { type: Number, required: true },
-	intendedMajor: { type: String },
-	extraAct: { type: String, required: true },
-	achievement: { type: String, required: true },
-	currentHighSchool: { type: String },
-	currentUniversity: { type: String },
+	auth_id: { type: String, required: true },
+	is_onboarded: { type: Boolean, required: true },
+	onboardingInfo: {
+		name: { type: String, required: true },
+		mentorMentee: { type: String, required: true },
+		fieldStudy: { type: String, required: true },
+		intendedMajor: { type: String, required: true },
+		gradYear: { type: Number, required: true },
+		race: { type: String, required: true },
+		gender: { type: String, required: true },
+		finAid: { type: String, required: true },
+		schoolTypes: {
+			ivy: { type: Boolean, required: true },
+			stateFlagships: { type: Boolean, required: true },
+			otherState: { type: Boolean, required: true },
+			otherPrivate: { type: Boolean, required: true }
+		}
+	},
 	posts: [{ type: mongoose.Types.ObjectId, required: true, ref: "Post" }],
 	replies: [
 		{ type: mongoose.Types.ObjectId, required: true, ref: "Replies" }
